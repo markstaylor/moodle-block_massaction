@@ -91,8 +91,9 @@ define(['jquery', 'core/str'], function($, corestr) {
                         inputControl.type = 'checkbox';
                         inputControl.id = 'massaction-input-' + moduleId;
                         inputControl.className = 'massaction-checkbox';
-
-                        courseActivities[moduleKey].appendChild(inputControl);
+                        if (courseActivities[moduleKey]) {
+                            courseActivities[moduleKey].appendChild(inputControl);
+                        }
                     }
                 }
             }
