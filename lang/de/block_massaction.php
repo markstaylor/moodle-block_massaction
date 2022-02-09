@@ -31,6 +31,7 @@ Im Kachel- und Ein-Themen-Format können Sie außerdem nur die Abschnitte auswä
 
 $string['action_delete'] = 'Löschen';
 $string['action_duplicate'] = 'Duplizieren';
+$string['action_duplicatetosection'] = 'In Abschnitt duplizieren';
 $string['action_hide'] = 'Verbergen';
 $string['action_makeavailable'] = 'Verfügbar machen';
 $string['action_moveleft'] = 'Nach links verschieben';

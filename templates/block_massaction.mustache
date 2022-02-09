@@ -45,6 +45,12 @@
         {{/show_moveto_select}}
     {{/actions}}
 
+    {{^actions}}
+        {{^show_duplicateto_select}}
+            {{#str}} noactionsavailable, block_massaction {{/str}}
+        {{/show_duplicateto_select}}
+    {{/actions}}
+
     <div class="block-massaction-action">
         {{#actions}}
             <div id="block-massaction-action-{{action}}">
@@ -62,6 +68,15 @@
                 </a>
             </form>
         {{/show_moveto_select}}
+
+       {{#show_duplicateto_select}}
+            <form>
+                {{> block_massaction/duplicateto_select}}
+                <a id="block-massaction-action-duplicateto" href="javascript:void(0);">
+                    {{#pix}} t/right, moodle, {{#str}} action_duplicatetosection, block_massaction{{/str}}{{/pix}}
+                </a>
+            </form>
+        {{/show_duplicateto_select}}
     </div>
 
     <form id="block-massaction-control-form" name="block-massaction-control-form" action="{{formaction}}" method="POST">

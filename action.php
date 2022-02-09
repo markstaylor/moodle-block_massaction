@@ -67,7 +67,7 @@ switch ($data->action) {
         if (get_config('block_massaction', 'duplicatemaxactivities') < count($modulerecords)) {
             $duplicatetask = new duplicate_task();
             $duplicatetask->set_userid($USER->id);
-            $duplicatetask->set_custom_data($modulerecords);
+            $duplicatetask->set_custom_data(array("modules" => $modulerecords));
             \core\task\manager::queue_adhoc_task($duplicatetask);
             redirect($returnurl, get_string('backgroundtaskinformation', 'block_massaction'), null,
                 \core\output\notification::NOTIFY_SUCCESS);
@@ -89,6 +89,23 @@ switch ($data->action) {
         }
         require_capability('moodle/course:manageactivities', $context);
         block_massaction\actions::perform_moveto($modulerecords, $data->moveToTarget);
+        break;
+    case 'duplicateto':
+        if (!isset($data->duplicateToTarget)) {
+            throw new moodle_exception('missingparam', 'block_massaction');
+        }
+        require_capability('moodle/backup:backuptargetimport', $context);
+        require_capability('moodle/restore:restoretargetimport', $context);
+        if (get_config('block_massaction', 'duplicatemaxactivities') < count($modulerecords)) {
+            $duplicatetask = new duplicate_task();
+            $duplicatetask->set_userid($USER->id);
+            $duplicatetask->set_custom_data(array("modules" => $modulerecords, "sectionid" => $data->duplicateToTarget));
+            \core\task\manager::queue_adhoc_task($duplicatetask);
+            redirect($returnurl, get_string('backgroundtaskinformation', 'block_massaction'), null,
+                \core\output\notification::NOTIFY_SUCCESS);
+        } else {
+            block_massaction\actions::duplicate($modulerecords, $data->duplicateToTarget);
+        }
         break;
     default:
         throw new moodle_exception('invalidaction', 'block_massaction', $data->action);

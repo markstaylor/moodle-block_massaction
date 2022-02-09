@@ -40,6 +40,8 @@ class duplicate_task extends \core\task\adhoc_task {
      * @throws moodle_exception
      */
     public function execute() {
-        actions::duplicate((array) $this->get_custom_data());
+        $data = $this->get_custom_data();
+        $sectionid = empty($data["sectionid"]) ? false : $data["sectionid"];
+        actions::duplicate((array) $data["modules"], $sectionid);
     }
 }

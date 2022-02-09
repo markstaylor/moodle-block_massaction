@@ -83,12 +83,13 @@ class actions {
      * Helper function for duplicating multiple course modules.
      *
      * @param array $modules list of module records to duplicate
+     * @param int $sectionid section to which the modules should be moved, false if same section as original
      * @throws moodle_exception if we cannot find the course the given modules belong to
      * @throws require_login_exception if we cannot determine the correct context
      * @throws \restore_controller_exception If there is an error while duplicating
      */
-    public static function duplicate(array $modules) : void {
-        global $CFG;
+    public static function duplicate(array $modules, $sectionid = false) : void {
+        global $CFG, $DB;
         require_once($CFG->dirroot . '/course/lib.php');
         require_once($CFG->dirroot . '/lib/modinfolib.php');
         if (empty($modules) || !$modules[array_key_first($modules)]
@@ -116,9 +117,16 @@ class actions {
         // Refetch course structure now including the duplicated modules.
         $modinfo = get_fast_modinfo($courseid);
         foreach ($orderinsection as $duplicatedmodid => $place) {
+            if ($sectionid === false) {
+                $section = $modinfo->get_section_info($modinfo->get_cm($duplicatedmodid)->sectionnum);
+            } else { // Duplicate to a specific section.
+                // Verify target.
+                if (!$section = $DB->get_record('course_sections', array('course' => $cm->course, 'section' => $sectionid))) {
+                    throw new moodle_exception('sectionnotexist', 'block_massaction');
+                }
+            }
             // Move each module to the end of their section.
-            moveto_module($modinfo->get_cm($duplicatedmodid),
-                $modinfo->get_section_info($modinfo->get_cm($duplicatedmodid)->sectionnum));
+            moveto_module($modinfo->get_cm($duplicatedmodid), $section);
         }
     }
 

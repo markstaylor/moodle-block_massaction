@@ -31,6 +31,7 @@ Additionally, when using the Tiles or One Topic course format you can only selec
 
 $string['action_delete'] = 'Delete';
 $string['action_duplicate'] = 'Duplicate';
+$string['action_duplicatetosection'] = 'Duplicate to section';
 $string['action_hide'] = 'Hide';
 $string['action_makeavailable'] = 'Make available';
 $string['action_moveleft'] = 'Outdent (move left)';

@@ -18,16 +18,18 @@
     color: var(--gray);
 }
 
-#block-massaction-control-section-list-moveto {
+#block-massaction-control-section-list-moveto, #block-massaction-control-section-list-duplicateto {
     background-color: transparent;
     width: 85%;
 }
 
-#block-massaction-control-section-list-moveto option {
+#block-massaction-control-section-list-moveto option,
+#block-massaction-control-section-list-duplicateto option {
     color: var(--dark);
 }
 
-#block-massaction-control-section-list-moveto option:disabled {
+#block-massaction-control-section-list-moveto option:disabled,
+#block-massaction-control-section-list-duplicateto option:disabled {
     color: var(--gray);
 }
 
@@ -39,6 +41,15 @@
 .block-massaction .block-massaction-action {
     position: relative;
     margin-left: 0.5em;
+}
+
+.block-massaction-action > div:hover {
+    cursor: pointer;
+    background-color: var(--light);
+}
+
+.block-massaction-action > form {
+    margin: 5px 0px;
 }
 
 #block-massaction-help-icon {

@@ -120,6 +120,8 @@ class block_massaction extends block_base {
                     'instanceid' => $this->instance->id, 'requesturi' => $_SERVER['REQUEST_URI'],
                     'helpicon' => $OUTPUT->help_icon('usage', 'block_massaction'),
                     'show_moveto_select' => has_capability('moodle/course:manageactivities', $context),
+                    'show_duplicateto_select' => (has_capability('moodle/backup:backuptargetimport', $context) && 
+                                                  has_capability('moodle/restore:restoretargetimport', $context)),
                     'sectionselecthelpicon' => $OUTPUT->help_icon('sectionselect', 'block_massaction')
                 ]);
         }

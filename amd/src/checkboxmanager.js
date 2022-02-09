@@ -123,7 +123,7 @@ const filterVisibleSections = (sections) => {
 };
 
 /**
- * Update the selection and moveto dropdowns of the massaction block according to the
+ * Update the selection, moveto and duplicateto dropdowns of the massaction block according to the
  * previously filtered sections.
  *
  * @param {[]} sections the sections object filtered before by {@link filterVisibleSections}
@@ -151,9 +151,17 @@ const updateSelectionAndMoveToDropdowns = (sections, sectionsUnfiltered) => {
                 return true;
             })
             .catch(ex => displayException(ex));
+
         Templates.renderForPromise('block_massaction/moveto_select', {'sections': sectionsUnfiltered})
             .then(({html, js}) => {
                 Templates.replaceNode('#' + cssIds.MOVETO_SELECT, html, js);
+                return true;
+            })
+            .catch(ex => displayException(ex));
+
+        Templates.renderForPromise('block_massaction/duplicateto_select', {'sections': sectionsUnfiltered})
+            .then(({html, js}) => {
+                Templates.replaceNode('#' + cssIds.DUPLICATETO_SELECT, html, js);
                 return true;
             })
             .catch(ex => displayException(ex));

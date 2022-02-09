@@ -48,8 +48,10 @@ export const cssIds = {
     MOVELEFT_LINK: 'block-massaction-action-moveleft',
     MOVERIGHT_LINK: 'block-massaction-action-moveright',
     MOVETO_ICON_LINK: 'block-massaction-action-moveto',
+    DUPLICATETO_ICON_LINK: 'block-massaction-action-duplicateto',
     SECTION_SELECT: 'block-massaction-control-section-list-select',
     MOVETO_SELECT: 'block-massaction-control-section-list-moveto',
+    DUPLICATETO_SELECT: 'block-massaction-control-section-list-duplicateto',
     BOX_ID_PREFIX: 'block-massaction-module-selector-',
     CHECKBOX_CLASS: 'block-massaction-checkbox',
     HIDDEN_FIELD_REQUEST_INFORMATION: 'block-massaction-control-request',
@@ -70,6 +72,7 @@ const actions = {
     MOVE_LEFT: 'moveleft',
     MOVE_RIGHT: 'moveright',
     MOVE_TO: 'moveto',
+    DUPLICATE_TO: 'duplicateto',
 };
 
 /**
@@ -173,6 +176,9 @@ export const init = async(courseId) => {
 
     document.getElementById(cssIds.MOVETO_ICON_LINK)?.addEventListener('click',
         () => submitAction(actions.MOVE_TO), false);
+    
+    document.getElementById(cssIds.DUPLICATETO_ICON_LINK)?.addEventListener('click',
+        () => submitAction(actions.DUPLICATE_TO), false);
 
     pendingPromise.resolve();
 };
@@ -258,6 +264,14 @@ const submitAction = (action) => {
             }
             break;
 
+        case actions.DUPLICATE_TO:
+            // Get the target section.
+            submitData.duplicateToTarget = document.getElementById(cssIds.DUPLICATETO_SELECT).value;
+            if (submitData.duplicateToTarget.trim() === '') {
+                displayError(Str.get_string('nomovingtargetselected', 'block_massaction'));
+                return false;
+            }
+            break;
         default:
             displayError('Unknown action: ' + action + '. Coding error.');
             return false;
