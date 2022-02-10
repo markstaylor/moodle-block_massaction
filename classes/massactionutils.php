@@ -30,6 +30,13 @@ use dml_exception;
 use moodle_exception;
 use stdClass;
 
+/**
+ * Mass action utility functions class.
+ *
+ * @copyright  2021 ISB Bayern
+ * @author     Philipp Memmel
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class massactionutils {
 
     /**
@@ -83,6 +90,7 @@ class massactionutils {
         $courseformat = $modinfo->get_course()->format;
 
         foreach ($modinfo->get_section_info_all() as $index => $section) {
+            unset($section); // Unused and not needed.
             $sectionentry = new stdClass();
             $sectionentry->number = $index;
             $sectionentry->name = get_section_name($courseid, $index);

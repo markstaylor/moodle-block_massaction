@@ -14,20 +14,20 @@
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
-defined('MOODLE_INTERNAL') || die();
+namespace block_massaction;
+
+use advanced_testcase;
+use block_massaction;
 
 /**
- * block_massmaction phpunit tests.
+ * block_massaction phpunit test class.
  *
- * @package    block_massaction
+ * @package   block_massaction
  * @copyright  2021 ISB Bayern
- * @auther     Philipp Memmel
+ * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
-class block_massaction_test extends advanced_testcase {
-
-    public stdClass $course;
-
+class massaction_test extends advanced_testcase {
     /**
      * Prepare testing
      */
@@ -61,24 +61,29 @@ class block_massaction_test extends advanced_testcase {
 
         // Positive tests.
         $modulerecords = $this->get_test_course_modules();
-        $selectedmodulerecords = array_splice($modulerecords, 1, 3);
-        $selectedmodulerecords = array_map(fn($module) => $module->id, $selectedmodulerecords);
+        $selectedmodules = array_splice($modulerecords, 1, 3);
+
+        $func = function(object $modulerecords): int {
+            return $modulerecords->id;
+        };
+        $selectedmodules = array_map($func, $selectedmodules);
+
         $jsonstring = '{"action":"moveleft","moduleIds":[';
-        foreach ($selectedmodulerecords as $selectedmodule) {
-            $jsonstring .= '"'.$selectedmodule.'",';
+        foreach ($selectedmodules as $module) {
+            $jsonstring .= '"' . $module . '",';
         }
         $jsonstring = substr($jsonstring, 0, -1);
         $jsonstring .= ']}';
         $data = block_massaction\massactionutils::extract_modules_from_json($jsonstring);
-        foreach ($selectedmodulerecords as $selectedmodule) {
-            $this->assertTrue(in_array($selectedmodule, $data->moduleIds));
-            $this->assertTrue(in_array($selectedmodule, array_keys($data->modulerecords)));
+        foreach ($selectedmodules as $module) {
+            $this->assertTrue(in_array($module, $data->moduleIds));
+            $this->assertTrue(in_array($module, array_keys($data->modulerecords)));
         }
-        foreach ($data->moduleIds as $extractedmoduleid) {
-            $this->assertTrue(in_array($extractedmoduleid, $selectedmodulerecords));
+        foreach ($data->moduleIds as $modid) {
+            $this->assertTrue(in_array($modid, $selectedmodules));
         }
-        foreach (array_keys($data->modulerecords) as $moduleidfrommodulerecords) {
-            $this->assertTrue(in_array($moduleidfrommodulerecords, $selectedmodulerecords));
+        foreach (array_keys($data->modulerecords) as $modid) {
+            $this->assertTrue(in_array($modid, $selectedmodules));
         }
     }
 
@@ -87,8 +92,13 @@ class block_massaction_test extends advanced_testcase {
         $modnames = \block_massaction\massactionutils::get_mod_names($this->course->id);
 
         // Check if there is a modname object ['modid' => MOD_ID, 'name' => MOD_NAME] for each of the course modules in the course.
-        $this->assertTrue(array_map(fn($modnameobject) => $modnameobject->modid, $modnames)
-            === array_values(array_map(fn($mod) => $mod->id, $modulerecords)));
+        $func1 = function(object $modnameobject): int {
+            return $modnameobject->modid;
+        };
+        $func2 = function(object $mod): int {
+            return $mod->id;
+        };
+        $this->assertTrue(array_map($func1, $modnames) === array_values(array_map($func2, $modulerecords)));
 
         $modinfo = get_fast_modinfo($this->course->id);
         foreach ($modnames as $modnameobject) {
@@ -97,6 +107,11 @@ class block_massaction_test extends advanced_testcase {
         }
     }
 
+    /**
+     * Get all test course modules.
+     *
+     * @return mixed
+     */
     private function get_test_course_modules(): array {
         global $DB;
         $modulerecords = $DB->get_records_select('course_modules', 'course = ?', [$this->course->id], 'id');
@@ -126,7 +141,11 @@ class block_massaction_test extends advanced_testcase {
         $moduleidstomove[] = get_fast_modinfo($this->course->id)->get_sections()[1][0];
         $moduleidstomove[] = get_fast_modinfo($this->course->id)->get_sections()[2][1];
         $moduleidstomove[] = get_fast_modinfo($this->course->id)->get_sections()[3][2];
-        $modulestomove = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $moduleidstomove));
+
+        $module = $this->get_test_course_modules();
+        $modulestomove = array_filter($module, function($module) use ($moduleidstomove) {
+            return in_array($module->id, $moduleidstomove);
+        });
 
         block_massaction\actions::perform_moveto($modulestomove, $targetsectionnum);
         // If the move of the selected modules has been successful, all the moved course module ids should be listed in the
@@ -146,7 +165,10 @@ class block_massaction_test extends advanced_testcase {
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[1][0];
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[2][1];
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[3][2];
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
 
         // Assert the modules are visible before calling method.
         foreach ($selectedmodules as $module) {
@@ -154,7 +176,9 @@ class block_massaction_test extends advanced_testcase {
         }
         block_massaction\actions::set_visibility($selectedmodules, false);
         // Reload modules from database.
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         // All selected modules should now be hidden.
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->visible);
@@ -163,7 +187,9 @@ class block_massaction_test extends advanced_testcase {
         // Check, if hide them again will change nothing.
         block_massaction\actions::set_visibility($selectedmodules, false);
         // Reload modules from database.
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         // All selected modules should now be hidden.
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->visible);
@@ -172,7 +198,9 @@ class block_massaction_test extends advanced_testcase {
         // All modules are hidden now, make them visible again.
         block_massaction\actions::set_visibility($selectedmodules, true);
         // Reload modules from database.
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         // All selected modules should now be visible again.
         foreach ($selectedmodules as $module) {
             $this->assertEquals(1, $module->visible);
@@ -181,7 +209,9 @@ class block_massaction_test extends advanced_testcase {
         // All modules are visible now, check if making them visible again will change nothing.
         block_massaction\actions::set_visibility($selectedmodules, true);
         // Reload modules from database.
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         // All selected modules should now still be visible.
         foreach ($selectedmodules as $module) {
             $this->assertEquals(1, $module->visible);
@@ -190,7 +220,9 @@ class block_massaction_test extends advanced_testcase {
         // Check if we can hide them, but make them available.
         block_massaction\actions::set_visibility($selectedmodules, true, false);
         // Reload modules from database.
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         // All selected modules should now still be visible.
         foreach ($selectedmodules as $module) {
             $this->assertEquals(1, $module->visible);
@@ -200,7 +232,9 @@ class block_massaction_test extends advanced_testcase {
         // Check if we can show them again.
         block_massaction\actions::set_visibility($selectedmodules, true);
         // Reload modules from database.
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         // All selected modules should now be completely visible again.
         foreach ($selectedmodules as $module) {
             $this->assertEquals(1, $module->visible);
@@ -210,7 +244,9 @@ class block_massaction_test extends advanced_testcase {
         // Hide them and then make them only available.
         block_massaction\actions::set_visibility($selectedmodules, false);
         // Reload modules from database.
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         // All selected modules should now be completely hidden.
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->visible);
@@ -218,7 +254,9 @@ class block_massaction_test extends advanced_testcase {
         // Now make them only available, but not visible on course page.
         block_massaction\actions::set_visibility($selectedmodules, true, false);
         // Reload modules from database.
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         // All selected modules should now be only available, but not visible.
         foreach ($selectedmodules as $module) {
             $this->assertEquals(1, $module->visible);
@@ -250,29 +288,30 @@ class block_massaction_test extends advanced_testcase {
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[3][0];
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[3][2];
 
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
-
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         block_massaction\actions::duplicate($selectedmodules);
 
         $modinfo = get_fast_modinfo($this->course->id);
         $sections = $modinfo->get_sections();
-        $sectiononemodulesincorrectorder = $sections[1];
-        $this->assertEquals($selectedmoduleids[0], $sectiononemodulesincorrectorder[0]);
-        $this->assertEquals($selectedmoduleids[1], $sectiononemodulesincorrectorder[1]);
+        $incorrectorder = $sections[1];
+        $this->assertEquals($selectedmoduleids[0], $incorrectorder[0]);
+        $this->assertEquals($selectedmoduleids[1], $incorrectorder[1]);
         // After the six already existing modules the duplicated modules should appear.
-        $this->assertEquals($modinfo->get_cm($sectiononemodulesincorrectorder[6])->name,
+        $this->assertEquals($modinfo->get_cm($incorrectorder[6])->name,
             $modinfo->get_cm($selectedmoduleids[0])->name . ' (copy)');
-        $this->assertEquals($modinfo->get_cm($sectiononemodulesincorrectorder[7])->name,
+        $this->assertEquals($modinfo->get_cm($incorrectorder[7])->name,
             $modinfo->get_cm($selectedmoduleids[1])->name . ' (copy)');
 
         // Same for the other modules in the other section.
-        $sectionthreemodulesincorrectorder = $sections[3];
-        $this->assertEquals($selectedmoduleids[2], $sectionthreemodulesincorrectorder[0]);
-        $this->assertEquals($selectedmoduleids[3], $sectionthreemodulesincorrectorder[2]);
+        $incorrectorder = $sections[3];
+        $this->assertEquals($selectedmoduleids[2], $incorrectorder[0]);
+        $this->assertEquals($selectedmoduleids[3], $incorrectorder[2]);
         // After the six already existing modules the duplicated modules should appear.
-        $this->assertEquals($modinfo->get_cm($sectionthreemodulesincorrectorder[6])->name,
+        $this->assertEquals($modinfo->get_cm($incorrectorder[6])->name,
             $modinfo->get_cm($selectedmoduleids[2])->name . ' (copy)');
-        $this->assertEquals($modinfo->get_cm($sectionthreemodulesincorrectorder[7])->name,
+        $this->assertEquals($modinfo->get_cm($incorrectorder[7])->name,
             $modinfo->get_cm($selectedmoduleids[3])->name . ' (copy)');
     }
 
@@ -285,7 +324,10 @@ class block_massaction_test extends advanced_testcase {
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[1][0];
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[2][1];
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[3][2];
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
 
         // Assert the modules are not indented yet.
         foreach ($selectedmodules as $module) {
@@ -294,25 +336,33 @@ class block_massaction_test extends advanced_testcase {
         // Negative tests: Method should only work if parameter 'amount' equals '1' oder '-1'.
         // In all other cases method should do nothing.
         block_massaction\actions::adjust_indentation($selectedmodules, 0);
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
 
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->indent);
         }
         block_massaction\actions::adjust_indentation($selectedmodules, -2);
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->indent);
         }
         block_massaction\actions::adjust_indentation($selectedmodules, 2);
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->indent);
         }
 
         // Now indent to the right.
         block_massaction\actions::adjust_indentation($selectedmodules, 1);
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         foreach ($selectedmodules as $module) {
             $this->assertEquals(1, $module->indent);
         }
@@ -321,13 +371,17 @@ class block_massaction_test extends advanced_testcase {
         for ($i = 0; $i < 15; $i++) {
             block_massaction\actions::adjust_indentation($selectedmodules, 1);
         }
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         foreach ($selectedmodules as $module) {
             $this->assertEquals(16, $module->indent);
         }
         // Indenting another time to the right now should do nothing.
         block_massaction\actions::adjust_indentation($selectedmodules, 1);
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         foreach ($selectedmodules as $module) {
             $this->assertEquals(16, $module->indent);
         }
@@ -336,17 +390,19 @@ class block_massaction_test extends advanced_testcase {
         for ($i = 0; $i < 16; $i++) {
             block_massaction\actions::adjust_indentation($selectedmodules, -1);
         }
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->indent);
         }
         // Indenting another time to the left now should do nothing.
         block_massaction\actions::adjust_indentation($selectedmodules, -1);
-        $selectedmodules = array_filter($this->get_test_course_modules(), fn($module) => in_array($module->id, $selectedmoduleids));
+        $selectedmodules = array_filter($this->get_test_course_modules(), function($module) use ($selectedmoduleids) {
+            return in_array($module->id, $selectedmoduleids);
+        });
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->indent);
         }
-
     }
-
 }

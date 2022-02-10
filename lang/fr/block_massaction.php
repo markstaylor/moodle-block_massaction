@@ -13,6 +13,16 @@
 //
 // You should have received a copy of the GNU General Public License
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
+
+/**
+ * Language file.
+ *
+ * @package    block_massaction
+ * @copyright  2021 ISB Bayern
+ * @author     Philipp Memmel
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
 $string['pluginname'] = 'Bloc Actions en Lot';
 $string['massaction:use'] = 'Utiliser le bloc Actions en Lot';
 $string['blockname'] = 'Actions en Lot';

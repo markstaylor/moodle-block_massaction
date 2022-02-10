@@ -4,7 +4,8 @@ Feature: Check if block generates all neccessary checkboxes in all the supported
 
   @javascript
   Scenario: Check if checkboxes are created properly for onetopic format
-    Given the following "courses" exist:
+    Given onetopic_course_format_is_installed
+    And the following "courses" exist:
       | fullname        | shortname | numsections | format   |
       | Test course     | TC        | 5           | onetopic |
     And the following "users" exist:
@@ -96,6 +97,8 @@ Feature: Check if block generates all neccessary checkboxes in all the supported
 
   @javascript
   Scenario Outline: Check if checkboxes are created properly for topcoll and tiles format
+    Given tiles_course_format_is_installed
+    And topcoll_course_format_is_installed
     And the following "courses" exist:
       | fullname        | shortname | numsections | format         |
       | Test course     | TC        | 5           | <courseformat> |

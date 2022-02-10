@@ -15,8 +15,11 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
+ * Configures and displays the block.
+ *
  * @package    block_massaction
- * @copyright  2011 University of Minnesota
+ * @copyright  2021 ISB Bayern
+ * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
@@ -111,5 +114,7 @@ switch ($data->action) {
         throw new moodle_exception('invalidaction', 'block_massaction', $data->action);
 }
 
-// Redirect back to the previous page.
-redirect($returnurl);
+if ($data->action !== "delete" || $deletionconfirmed) {
+    // Redirect back to the previous page.
+    redirect($returnurl);
+}

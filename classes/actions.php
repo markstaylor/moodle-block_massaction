@@ -31,6 +31,13 @@ use moodle_exception;
 use require_login_exception;
 use required_capability_exception;
 
+/**
+ * Block actions class.
+ *
+ * @copyright  2021 ISB Bayern
+ * @author     Philipp Memmel
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class actions {
     /**
      * Helper function to perform indentation/outdentation.
@@ -62,18 +69,18 @@ class actions {
      *
      * @param array $modules list of module records to modify
      * @param bool $visible true to show, false to hide
-     * @param bool $visibleoncoursepage false if you want the modules to be available ($visible has to be true), but not visible for
+     * @param bool $visibleonpage false if you want the modules to be available ($visible has to be true), but not visible for
      *  students on the course page
      */
-    public static function set_visibility(array $modules, bool $visible, bool $visibleoncoursepage = true) : void {
+    public static function set_visibility(array $modules, bool $visible, bool $visibleonpage = true) : void {
         global $CFG;
         require_once($CFG->dirroot . '/course/lib.php');
 
-        $visibilityinteger = $visible ? 1 : 0;
-        $visibilityoncoursepageinteger = $visibleoncoursepage ? 1 : 0;
+        $visibleint = $visible ? 1 : 0;
+        $visibleonpageint = $visibleonpage ? 1 : 0;
 
         foreach ($modules as $cm) {
-            if (set_coursemodule_visible($cm->id, $visibilityinteger, $visibilityoncoursepageinteger)) {
+            if (set_coursemodule_visible($cm->id, $visibleint, $visibleonpageint)) {
                 \core\event\course_module_updated::create_from_cm(get_coursemodule_from_id(false, $cm->id))->trigger();
             }
         }
@@ -117,6 +124,7 @@ class actions {
         // Refetch course structure now including the duplicated modules.
         $modinfo = get_fast_modinfo($courseid);
         foreach ($orderinsection as $duplicatedmodid => $place) {
+            unset($place); // Unused and not needed anymore.
             if ($sectionid === false) {
                 $section = $modinfo->get_section_info($modinfo->get_cm($duplicatedmodid)->sectionnum);
             } else { // Duplicate to a specific section.
@@ -143,10 +151,9 @@ class actions {
      * @throws require_login_exception
      * @throws required_capability_exception
      */
-    public static function print_deletion_confirmation(array $modules,
-            string $massactionrequest, int $instanceid, string $returnurl) : void {
+    public static function print_deletion_confirmation(array $modules, string $massactionrequest,
+                                                       int $instanceid, string $returnurl) : void {
         global $DB, $PAGE, $OUTPUT, $CFG;
-
         $modulelist = [];
 
         foreach ($modules as $cmrecord) {
@@ -194,8 +201,6 @@ class actions {
         echo $OUTPUT->confirm($content, $formcontinue, $formcancel);
         echo $OUTPUT->box_end();
         echo $OUTPUT->footer();
-
-        exit;
     }
 
     /**
@@ -215,7 +220,7 @@ class actions {
                 new moodle_exception('invalidcoursemodule');
             }
 
-            if (!$course = $DB->get_record('course', array('id' => $cm->course))) {
+            if (!$DB->get_record('course', array('id' => $cm->course))) {
                 throw new moodle_exception('invalidcourseid');
             }
 

@@ -15,10 +15,19 @@
 // along with Moodle.  If not, see <http://www.gnu.org/licenses/>.
 
 /**
- * Configures and displays the block.
+ * Primary block class.
  *
  * @package    block_massaction
- * @copyright  2013 University of Minnesota
+ * @copyright  2021 ISB Bayern
+ * @author     Philipp Memmel
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
+
+/**
+ * Configures and displays the block.
+ *
+ * @copyright  2021 ISB Bayern
+ * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class block_massaction extends block_base {
@@ -34,7 +43,7 @@ class block_massaction extends block_base {
      * Which page types this block may appear on.
      *
      * The information returned here is processed by the
-     * {@link blocks_name_allowed_in_format()} function. Look there if you need
+     * blocks_name_allowed_in_format() function. Look there if you need
      * to know exactly how this works.
      *
      * @return array page-type prefix => true/false.
@@ -53,6 +62,8 @@ class block_massaction extends block_base {
     }
 
     /**
+     * Has config function.
+     *
      * @see block_base::has_config()
      */
     public function has_config() {
@@ -120,7 +131,7 @@ class block_massaction extends block_base {
                     'instanceid' => $this->instance->id, 'requesturi' => $_SERVER['REQUEST_URI'],
                     'helpicon' => $OUTPUT->help_icon('usage', 'block_massaction'),
                     'show_moveto_select' => has_capability('moodle/course:manageactivities', $context),
-                    'show_duplicateto_select' => (has_capability('moodle/backup:backuptargetimport', $context) && 
+                    'show_duplicateto_select' => (has_capability('moodle/backup:backuptargetimport', $context) &&
                                                   has_capability('moodle/restore:restoretargetimport', $context)),
                     'sectionselecthelpicon' => $OUTPUT->help_icon('sectionselect', 'block_massaction')
                 ]);

@@ -1,28 +1,28 @@
 @block @block_massaction @block_massaction_actions @theme_mebis
 Feature: Check if all the different type of actions of the mass actions block work
 
-Background:
-  Given the following "courses" exist:
-    | fullname        | shortname | numsections | format  |
-    | Test course     | TC        | 5           | topics  |
-  And the following "users" exist:
-    | username | firstname | lastname | email                |
-    | teacher1 | Mr        | Teacher  | teacher1@example.com |
-    | student1 | Guy       | Student  | student1@example.com |
-  And the following "course enrolments" exist:
-    | user     | course | role           |
-    | teacher1 | TC     | editingteacher |
-    | student1 | TC     | student        |
-  And the following "activities" exist:
-    | activity | course | idnumber | name           | intro                 | section |
-    | page     | TC     | 1        | Test Activity1 | Test page description | 0       |
-    | page     | TC     | 2        | Test Activity2 | Test page description | 1       |
-    | label    | TC     | 3        | Test Activity3 | Label text            | 2       |
-    | page     | TC     | 4        | Test Activity4 | Test page description | 4       |
-    | assign   | TC     | 5        | Test Activity5 | Test page description | 4       |
-  When I log in as "teacher1"
-  And I am on "Test course" course homepage with editing mode on
-  And I add the "Mass Actions" block
+  Background:
+    Given the following "courses" exist:
+      | fullname        | shortname | numsections | format  |
+      | Test course     | TC        | 5           | topics  |
+    And the following "users" exist:
+      | username | firstname | lastname | email                |
+      | teacher1 | Mr        | Teacher  | teacher1@example.com |
+      | student1 | Guy       | Student  | student1@example.com |
+    And the following "course enrolments" exist:
+      | user     | course | role           |
+      | teacher1 | TC     | editingteacher |
+      | student1 | TC     | student        |
+    And the following "activities" exist:
+      | activity | course | idnumber | name           | intro                 | section |
+      | page     | TC     | 1        | Test Activity1 | Test page description | 0       |
+      | page     | TC     | 2        | Test Activity2 | Test page description | 1       |
+      | label    | TC     | 3        | Test Activity3 | Label text            | 2       |
+      | page     | TC     | 4        | Test Activity4 | Test page description | 4       |
+      | assign   | TC     | 5        | Test Activity5 | Test page description | 4       |
+    When I log in as "teacher1"
+    And I am on "Test course" course homepage with editing mode on
+    And I add the "Mass Actions" block
 
   @javascript
   Scenario: Check if mass actions 'hide' and 'show' work

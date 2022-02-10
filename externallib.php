@@ -29,6 +29,13 @@ defined('MOODLE_INTERNAL') || die;
 
 require_once("$CFG->libdir/externallib.php");
 
+/**
+ * External lib class.
+ *
+ * @copyright  2021 ISB Bayern
+ * @author     Philipp Memmel
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class block_massaction_external extends external_api {
 
     /**

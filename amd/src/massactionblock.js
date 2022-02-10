@@ -176,7 +176,7 @@ export const init = async(courseId) => {
 
     document.getElementById(cssIds.MOVETO_ICON_LINK)?.addEventListener('click',
         () => submitAction(actions.MOVE_TO), false);
-    
+
     document.getElementById(cssIds.DUPLICATETO_ICON_LINK)?.addEventListener('click',
         () => submitAction(actions.DUPLICATE_TO), false);
 

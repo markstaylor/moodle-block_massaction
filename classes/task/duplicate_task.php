@@ -30,6 +30,13 @@ use moodle_exception;
 use require_login_exception;
 use restore_controller_exception;
 
+/**
+ * Duplicate task class.
+ *
+ * @copyright  2021 ISB Bayern
+ * @author     Philipp Memmel
+ * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
+ */
 class duplicate_task extends \core\task\adhoc_task {
 
     /**

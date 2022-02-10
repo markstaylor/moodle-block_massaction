@@ -17,15 +17,13 @@
 /**
  * Privacy Subsystem implementation for blocks_mbsnewcourse.
  *
- * @package    blocks_massaction
+ * @package    block_massaction
  * @copyright  2021 ISB Bayern
  * @author     Philipp Memmel
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 namespace block_massaction\privacy;
-
-defined('MOODLE_INTERNAL') || die();
 
 /**
  * Privacy Subsystem for blocks_massaction implementing null_provider.
