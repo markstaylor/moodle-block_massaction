@@ -18,8 +18,7 @@
  * Configures and displays the block.
  *
  * @package    block_massaction
- * @copyright  2021 ISB Bayern
- * @author     Philipp Memmel
+ * @copyright  2011 University of Minnesota
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 

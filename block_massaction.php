@@ -18,16 +18,14 @@
  * Primary block class.
  *
  * @package    block_massaction
- * @copyright  2021 ISB Bayern
- * @author     Philipp Memmel
+ * @copyright  2013 University of Minnesota
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 
 /**
  * Configures and displays the block.
  *
- * @copyright  2021 ISB Bayern
- * @author     Philipp Memmel
+ * @copyright  2013 University of Minnesota
  * @license    http://www.gnu.org/copyleft/gpl.html GNU GPL v3 or later
  */
 class block_massaction extends block_base {
