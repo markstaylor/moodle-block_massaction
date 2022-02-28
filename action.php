@@ -69,7 +69,7 @@ switch ($data->action) {
         if (get_config('block_massaction', 'duplicatemaxactivities') < count($modulerecords)) {
             $duplicatetask = new duplicate_task();
             $duplicatetask->set_userid($USER->id);
-            $duplicatetask->set_custom_data(array("modules" => $modulerecords));
+            $duplicatetask->set_custom_data(['modules' => $modulerecords]);
             \core\task\manager::queue_adhoc_task($duplicatetask);
             redirect($returnurl, get_string('backgroundtaskinformation', 'block_massaction'), null,
                 \core\output\notification::NOTIFY_SUCCESS);
@@ -101,7 +101,7 @@ switch ($data->action) {
         if (get_config('block_massaction', 'duplicatemaxactivities') < count($modulerecords)) {
             $duplicatetask = new duplicate_task();
             $duplicatetask->set_userid($USER->id);
-            $duplicatetask->set_custom_data(array("modules" => $modulerecords, "sectionid" => $data->duplicateToTarget));
+            $duplicatetask->set_custom_data(['modules' => $modulerecords, 'sectionid' => $data->duplicateToTarget]);
             \core\task\manager::queue_adhoc_task($duplicatetask);
             redirect($returnurl, get_string('backgroundtaskinformation', 'block_massaction'), null,
                 \core\output\notification::NOTIFY_SUCCESS);
