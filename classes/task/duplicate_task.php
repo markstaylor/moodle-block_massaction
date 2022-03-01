@@ -48,7 +48,7 @@ class duplicate_task extends \core\task\adhoc_task {
      */
     public function execute() {
         $data = $this->get_custom_data();
-        $sectionid = empty($data["sectionid"]) ? false : $data["sectionid"];
-        actions::duplicate((array) $data["modules"], $sectionid);
+        $sectionid = empty($data->sectionid) ? false : $data->sectionid;
+        actions::duplicate((array) $data->modules, $sectionid);
     }
 }
