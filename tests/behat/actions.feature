@@ -1,8 +1,10 @@
-@block @block_massaction @block_massaction_actions @theme_mebis
+@block @block_massaction @block_massaction_actions
 Feature: Check if all the different type of actions of the mass actions block work
 
   Background:
-    Given the following "courses" exist:
+    Given the following config values are set as admin:
+      | allowstealth | 1 |
+    And the following "courses" exist:
       | fullname        | shortname | numsections | format  |
       | Test course     | TC        | 5           | topics  |
     And the following "users" exist:
@@ -38,6 +40,18 @@ Feature: Check if all the different type of actions of the mass actions block wo
     And I click on "Show" "link" in the "Mass Actions" "block"
     Then "Test Activity1" activity should be visible
     And "Test Activity4" activity should be visible
+    When I click on "Test Activity1 Checkbox" "checkbox"
+    And I click on "Test Activity4 Checkbox" "checkbox"
+    And I click on "Make available" "link" in the "Mass Actions" "block"
+    And I open "Test Activity1" actions menu
+    Then "Test Activity1" actions menu should have "Make unavailable" item
+    When I open "Test Activity4" actions menu
+    Then "Test Activity4" actions menu should have "Make unavailable" item
+    And I log out
+    When I log in as "student1"
+    And I am on "Test course" course homepage
+    Then I should not see "Test Activity1"
+    And I should not see "Test Activity4"
 
   @javascript
   Scenario: Check if mass action 'move to section' works
@@ -80,3 +94,17 @@ Feature: Check if all the different type of actions of the mass actions block wo
     Then I should see "Test Activity2 (copy)" in the "Topic 1" "section"
     And I should see "Test Activity4 (copy)" in the "Topic 4" "section"
     And I should see "Test Activity5 (copy)" in the "Topic 4" "section"
+
+  @javascript
+  Scenario: Check if mass action 'duplicate to section' works
+    When I click on "Test Activity2 Checkbox" "checkbox"
+    And I click on "Test Activity4 Checkbox" "checkbox"
+    And I click on "Test Activity5 Checkbox" "checkbox"
+    And I set the field "Duplicate to section" in the "Mass Actions" "block" to "Topic 3"
+    And I click on "Duplicate to section" "link" in the "Mass Actions" "block"
+    Then I should see "Test Activity2" in the "Topic 1" "section"
+    And I should see "Test Activity4" in the "Topic 4" "section"
+    And I should see "Test Activity5" in the "Topic 4" "section"
+    And I should see "Test Activity2 (copy)" in the "Topic 3" "section"
+    And I should see "Test Activity4 (copy)" in the "Topic 3" "section"
+    And I should see "Test Activity5 (copy)" in the "Topic 3" "section"

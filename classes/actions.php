@@ -26,10 +26,12 @@
 namespace block_massaction;
 
 use coding_exception;
+use core\event\course_module_updated;
 use dml_exception;
 use moodle_exception;
 use require_login_exception;
 use required_capability_exception;
+use restore_controller_exception;
 
 /**
  * Block actions class.
@@ -71,17 +73,27 @@ class actions {
      * @param bool $visible true to show, false to hide
      * @param bool $visibleonpage false if you want the modules to be available ($visible has to be true), but not visible for
      *  students on the course page
+     * @throws coding_exception
      */
     public static function set_visibility(array $modules, bool $visible, bool $visibleonpage = true) : void {
-        global $CFG;
+        global $COURSE, $CFG;
         require_once($CFG->dirroot . '/course/lib.php');
 
         $visibleint = $visible ? 1 : 0;
         $visibleonpageint = $visibleonpage ? 1 : 0;
+        $courseformat = course_get_format($COURSE->id);
 
         foreach ($modules as $cm) {
+            if ($visible && !$visibleonpage) {
+                // We want to set the visibility to 'available, but hidden', but have to respect the global config and
+                // the course format config.
+                if (empty($CFG->allowstealth) || !$courseformat->allow_stealth_module_visibility($cm, $cm->section)) {
+                    // We silently ignore this course module it must not be set to 'available, but hidden'.
+                    continue;
+                }
+            }
             if (set_coursemodule_visible($cm->id, $visibleint, $visibleonpageint)) {
-                \core\event\course_module_updated::create_from_cm(get_coursemodule_from_id(false, $cm->id))->trigger();
+                course_module_updated::create_from_cm(get_coursemodule_from_id(false, $cm->id))->trigger();
             }
         }
     }
@@ -90,21 +102,21 @@ class actions {
      * Helper function for duplicating multiple course modules.
      *
      * @param array $modules list of module records to duplicate
-     * @param int $sectionid section to which the modules should be moved, false if same section as original
+     * @param int $sectionnumber section to which the modules should be moved, false if same section as original
      * @throws moodle_exception if we cannot find the course the given modules belong to
      * @throws require_login_exception if we cannot determine the correct context
-     * @throws \restore_controller_exception If there is an error while duplicating
+     * @throws restore_controller_exception If there is an error while duplicating
      */
-    public static function duplicate(array $modules, $sectionid = false) : void {
+    public static function duplicate(array $modules, $sectionnumber = false) : void {
         global $CFG, $DB;
         require_once($CFG->dirroot . '/course/lib.php');
         require_once($CFG->dirroot . '/lib/modinfolib.php');
-        if (empty($modules) || !$modules[array_key_first($modules)]
-                || !property_exists($modules[array_key_first($modules)], 'course')) {
+        if (empty($modules) || !reset($modules)
+                || !property_exists(reset($modules), 'course')) {
             return;
         }
 
-        $courseid = $modules[array_key_first($modules)]->course;
+        $courseid = reset($modules)->course;
         // Needed to set the correct context.
         require_login($courseid);
 
@@ -119,17 +131,20 @@ class actions {
         // and move the newly duplicated modules to the end of their section in the correct order:
         // Let order of mods in a section be mod1, mod2, mod3, mod4, mod5. If we duplicate mod2, mod4, the order afterwards will be
         // mod1, mod2, mod3, mod4, mod5, mod2(dup), mod4(dup).
-        asort($orderinsection);
+        $duplicatecmids = array_keys($orderinsection);
+        $places = array_values($orderinsection);
+        array_multisort($duplicatecmids, SORT_ASC, $places, SORT_ASC);
+        $orderinsection = array_combine($duplicatecmids, $places);
 
         // Refetch course structure now including the duplicated modules.
         $modinfo = get_fast_modinfo($courseid);
         foreach ($orderinsection as $duplicatedmodid => $place) {
             unset($place); // Unused and not needed anymore.
-            if ($sectionid === false) {
+            if ($sectionnumber === false) {
                 $section = $modinfo->get_section_info($modinfo->get_cm($duplicatedmodid)->sectionnum);
             } else { // Duplicate to a specific section.
                 // Verify target.
-                if (!$section = $DB->get_record('course_sections', array('course' => $cm->course, 'section' => $sectionid))) {
+                if (!$section = $DB->get_record('course_sections', array('course' => $cm->course, 'section' => $sectionnumber))) {
                     throw new moodle_exception('sectionnotexist', 'block_massaction');
                 }
             }
@@ -204,7 +219,7 @@ class actions {
     }
 
     /**
-     * perform the actual deletion of the selected course modules
+     * Perform the actual deletion of the selected course modules.
      *
      * @param array $modules
      * @throws coding_exception
@@ -245,7 +260,7 @@ class actions {
      * @throws dml_exception if we cannot read from database
      * @throws moodle_exception if we have invalid parameters
      */
-    public static function perform_moveto(array $modules, int $target) : void {
+    public static function perform_moveto(array $modules, int $target): void {
         global $CFG, $DB;
 
         require_once($CFG->dirroot . '/course/lib.php');

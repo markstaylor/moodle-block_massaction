@@ -28,4 +28,4 @@ $plugin->version = 2022012801;
 $plugin->requires  = 2020061500;
 $plugin->component = 'block_massaction';
 $plugin->maturity = MATURITY_ALPHA;
-$plugin->release = 'Build 20220108';
+$plugin->release = 'Build 20220311';
