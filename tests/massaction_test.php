@@ -132,12 +132,24 @@ class massaction_test extends advanced_testcase {
     }
 
     public function test_mass_move_modules_to_new_section(): void {
-        global $DB;
-        $targetsectionnum = 3;
+        $targetsectionnum = 4;
 
         // Method should do nothing for empty modules array.
         // Throwing an exception would make this whole test fail, so this a 'valid' test.
         block_massaction\actions::perform_moveto([], $targetsectionnum);
+
+        // First of all: Re-order modules of some sections randomly.
+        // Reason: We want to see if the order in the section is preserved which usually is different from the module ids.
+        // The method to be tested should follow the sections order. To be able to see the correct effect we have to ensure that
+        // the order of moduleids isn't the same as the order in the section.
+        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][0]),
+            get_fast_modinfo($this->course->id)->get_section_info(1));
+        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][3]),
+            get_fast_modinfo($this->course->id)->get_section_info(1));
+        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[3][0]),
+            get_fast_modinfo($this->course->id)->get_section_info(3));
+        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[3][3]),
+            get_fast_modinfo($this->course->id)->get_section_info(3));
 
         // Select some random course modules from different sections to be moved.
         $moduleidstomove[] = get_fast_modinfo($this->course->id)->get_sections()[1][0];
@@ -151,10 +163,11 @@ class massaction_test extends advanced_testcase {
 
         block_massaction\actions::perform_moveto($modulestomove, $targetsectionnum);
         // If the move of the selected modules has been successful, all the moved course module ids should be listed in the
-        // 'sequence' field of the target section entry in the course_sections table.
-        $targetsection = $DB->get_record('course_sections', ['course' => $this->course->id, 'section' => $targetsectionnum]);
+        // 'sequence' field of the target section entry in the course_sections table, in the correct order.
+        $i = 0;
         foreach ($moduleidstomove as $movedmoduleid) {
-            $this->assertTrue(in_array($movedmoduleid, explode(',', $targetsection->sequence)));
+            $this->assertEquals($movedmoduleid, get_fast_modinfo($this->course->id)->get_sections()[$targetsectionnum][6 + $i]);
+            $i++;
         }
     }
 
@@ -293,7 +306,7 @@ class massaction_test extends advanced_testcase {
         block_massaction\actions::duplicate([new \stdClass()]);
 
         // First of all: Re-order modules of some sections randomly.
-        // Reason: We want to see if the order of the section is preserved which usually is different from the module ids.
+        // Reason: We want to see if the order in the section is preserved which usually is different from the module ids.
         // The method to be tested should follow the sections order. To be able to see the correct effect we have to ensure that
         // the order of moduleids isn't the same as the order in the section.
         moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][0]),
