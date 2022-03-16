@@ -78,7 +78,7 @@ class actions {
      * @throws coding_exception
      */
     public static function set_visibility(array $modules, bool $visible, bool $visibleonpage = true) : void {
-        global $CFG;
+        global $CFG, $DB;
         require_once($CFG->dirroot . '/course/lib.php');
 
         if (empty($modules)) {
@@ -92,10 +92,14 @@ class actions {
         $courseformat = course_get_format($courseid);
 
         foreach ($modules as $cm) {
+            if (!$section = $DB->get_record('course_sections', array('course' => $courseid, 'id' => $cm->section))) {
+                throw new moodle_exception('sectionnotexist', 'block_massaction');
+            }
+
             if ($visible && !$visibleonpage) {
                 // We want to set the visibility to 'available, but hidden', but have to respect the global config and
                 // the course format config.
-                if (empty($CFG->allowstealth) || !$courseformat->allow_stealth_module_visibility($cm, $cm->section)) {
+                if (empty($CFG->allowstealth) || !$courseformat->allow_stealth_module_visibility($cm, $section)) {
                     // We silently ignore this course module it must not be set to 'available, but hidden'.
                     continue;
                 }
