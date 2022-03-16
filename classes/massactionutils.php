@@ -62,18 +62,16 @@ class massactionutils {
             'ID IN (' . implode(',', array_fill(0, count($data->moduleIds), '?')) . ')',
             $data->moduleIds);
 
-        $orderedmodules = array();
         foreach ($data->moduleIds as $modid) {
             if (!isset($modulerecords[$modid])) {
                 throw new moodle_exception('invalidmoduleid', 'block_massaction', $modid);
             }
-            $orderedmodules[] = $modulerecords[$modid];
         }
 
         if (!isset($data->action)) {
             throw new moodle_exception('noaction', 'block_massaction');
         }
-        $data->modulerecords = $orderedmodules;
+        $data->modulerecords = $modulerecords;
         return $data;
     }
 
