@@ -121,35 +121,40 @@ class actions {
         require_login($courseid);
 
         $modinfo = get_fast_modinfo($courseid);
-        $orderinsection = [];
-        foreach ($modules as $cm) {
-            $duplicatedmod = duplicate_module($modinfo->get_course(), $modinfo->get_cm($cm->id));
-            $orderinsection[$duplicatedmod->id] = array_search($cm->id, $modinfo->get_sections()[$duplicatedmod->sectionnum]);
+
+        // We extract the order of modules across all sections.
+        $sections = $modinfo->get_sections();
+        $idsincourseorder = [];
+        // We "flatmap" all the module ids, section after section with the given order of the modules in their section.
+        foreach ($sections as $modids) {
+            $idsincourseorder = array_merge($idsincourseorder, $modids);
         }
-        // The array $orderinsection now has the structure ['duplicated_cmid' => 'place_of_original_cm_in_section'].
-        // Now sort array by 'place_of_original_cm_in_section' order in section so we afterwards can iterate over it
-        // and move the newly duplicated modules to the end of their section in the correct order:
+
+        // We filter all modules: After that only the modules which should be duplicated are being left.
+        $idsincourseorder = array_filter($idsincourseorder, fn($cmid) => in_array($cmid, array_map(fn($cm) => $cm->id, $modules)));
+
+        // We now duplicate the modules in the order they have in the course. That way the duplicated modules will be correctly
+        // sorted by their id:
         // Let order of mods in a section be mod1, mod2, mod3, mod4, mod5. If we duplicate mod2, mod4, the order afterwards will be
         // mod1, mod2, mod3, mod4, mod5, mod2(dup), mod4(dup).
-        $duplicatecmids = array_keys($orderinsection);
-        $places = array_values($orderinsection);
-        array_multisort($duplicatecmids, SORT_ASC, $places, SORT_ASC);
-        $orderinsection = array_combine($duplicatecmids, $places);
+        foreach ($idsincourseorder as $cmid) {
+            $duplicatedmod = duplicate_module($modinfo->get_course(), $modinfo->get_cm($cmid));
+            $duplicatedmods[] = $duplicatedmod;
+        }
 
         // Refetch course structure now including the duplicated modules.
         $modinfo = get_fast_modinfo($courseid);
-        foreach ($orderinsection as $duplicatedmodid => $place) {
-            unset($place); // Unused and not needed anymore.
+        foreach ($duplicatedmods as $duplicatedmod) {
             if ($sectionnumber === false) {
-                $section = $modinfo->get_section_info($modinfo->get_cm($duplicatedmodid)->sectionnum);
+                $section = $modinfo->get_section_info($duplicatedmod->sectionnum);
             } else { // Duplicate to a specific section.
                 // Verify target.
-                if (!$section = $DB->get_record('course_sections', array('course' => $cm->course, 'section' => $sectionnumber))) {
+                if (!$section = $DB->get_record('course_sections', array('course' => $courseid, 'section' => $sectionnumber))) {
                     throw new moodle_exception('sectionnotexist', 'block_massaction');
                 }
             }
             // Move each module to the end of their section.
-            moveto_module($modinfo->get_cm($duplicatedmodid), $section);
+            moveto_module($duplicatedmod, $section);
         }
     }
 
