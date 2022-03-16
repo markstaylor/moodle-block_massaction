@@ -138,18 +138,8 @@ class massaction_test extends advanced_testcase {
         // Throwing an exception would make this whole test fail, so this a 'valid' test.
         block_massaction\actions::perform_moveto([], $targetsectionnum);
 
-        // First of all: Re-order modules of some sections randomly.
-        // Reason: We want to see if the order in the section is preserved which usually is different from the module ids.
-        // The method to be tested should follow the sections order. To be able to see the correct effect we have to ensure that
-        // the order of moduleids isn't the same as the order in the section.
-        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][0]),
-            get_fast_modinfo($this->course->id)->get_section_info(1));
-        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][3]),
-            get_fast_modinfo($this->course->id)->get_section_info(1));
-        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[3][0]),
-            get_fast_modinfo($this->course->id)->get_section_info(3));
-        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[3][3]),
-            get_fast_modinfo($this->course->id)->get_section_info(3));
+        // Move modules around so that they are not in id order.
+        $this->shuffle_modules();
 
         // Select some random course modules from different sections to be moved.
         $moduleidstomove[] = get_fast_modinfo($this->course->id)->get_sections()[1][0];
@@ -305,18 +295,8 @@ class massaction_test extends advanced_testcase {
         block_massaction\actions::duplicate([]);
         block_massaction\actions::duplicate([new \stdClass()]);
 
-        // First of all: Re-order modules of some sections randomly.
-        // Reason: We want to see if the order in the section is preserved which usually is different from the module ids.
-        // The method to be tested should follow the sections order. To be able to see the correct effect we have to ensure that
-        // the order of moduleids isn't the same as the order in the section.
-        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][0]),
-            get_fast_modinfo($this->course->id)->get_section_info(1));
-        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][3]),
-            get_fast_modinfo($this->course->id)->get_section_info(1));
-        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[3][0]),
-            get_fast_modinfo($this->course->id)->get_section_info(3));
-        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[3][3]),
-            get_fast_modinfo($this->course->id)->get_section_info(3));
+        // Move modules around so that they are not in id order.
+        $this->shuffle_modules();
 
         // Select some random course modules from different sections to be duplicated.
         $selectedmoduleids[] = get_fast_modinfo($this->course->id)->get_sections()[1][0];
@@ -457,5 +437,23 @@ class massaction_test extends advanced_testcase {
         foreach ($selectedmodules as $module) {
             $this->assertEquals(0, $module->indent);
         }
+    }
+
+    /**
+     * Shuffle modules for proper testing environment.
+     */
+    public function shuffle_modules(): void {
+        // First of all: Re-order modules of some sections randomly.
+        // Reason: We want to see if the order in the section is preserved which usually is different from the module ids.
+        // The method to be tested should follow the sections order. To be able to see the correct effect we have to ensure that
+        // the order of moduleids isn't the same as the order in the section.
+        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][0]),
+            get_fast_modinfo($this->course->id)->get_section_info(1));
+        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[1][3]),
+            get_fast_modinfo($this->course->id)->get_section_info(1));
+        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[3][0]),
+            get_fast_modinfo($this->course->id)->get_section_info(3));
+        moveto_module(get_fast_modinfo($this->course->id)->get_cm(get_fast_modinfo($this->course->id)->get_sections()[3][3]),
+            get_fast_modinfo($this->course->id)->get_section_info(3));
     }
 }
