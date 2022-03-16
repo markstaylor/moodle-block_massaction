@@ -131,7 +131,11 @@ class actions {
         }
 
         // We filter all modules: After that only the modules which should be duplicated are being left.
-        $idsincourseorder = array_filter($idsincourseorder, fn($cmid) => in_array($cmid, array_map(fn($cm) => $cm->id, $modules)));
+        $idsincourseorder = array_filter($idsincourseorder, function($cmid) use ($modules) {
+            return in_array($cmid, array_map(function($cm) {
+                return $cm->id;
+            }, $modules));
+        });
 
         // We now duplicate the modules in the order they have in the course. That way the duplicated modules will be correctly
         // sorted by their id:
