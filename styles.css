@@ -65,7 +65,7 @@
 
 .block-massaction-checkbox {
     position: absolute;
-    transform: translateY(1.5rem);
+    transform: translate(0.1rem, 1.2rem);
     /* In case the checkbox is overlapping with another element, let's make sure the checkbox is still clickable */
     z-index: 1;
 }
